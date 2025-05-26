@@ -5,10 +5,12 @@ import (
 	"log/slog"
 	"os"
 	"os/exec"
+	"strconv"
 	"strings"
 	"time"
 
 	tele "gopkg.in/telebot.v4"
+	"gopkg.in/telebot.v4/middleware"
 )
 
 func main() {
@@ -16,11 +18,14 @@ func main() {
 	if len(os.Getenv("TOKEN")) == 0 {
 		slog.Warn("Environment variable TOKEN is not set.")
 	}
+	token := os.Getenv("TOKEN")
+	whitelist := parseWhiteliest(os.Getenv("WHITELIST"))
+	verbose := len(os.Getenv("VERBOSE")) > 0
 
 	pref := tele.Settings{
-		Token:   os.Getenv("TOKEN"),
+		Token:   token,
 		Poller:  &tele.LongPoller{Timeout: 10 * time.Second},
-		Verbose: true,
+		Verbose: verbose,
 	}
 
 	b, err := tele.NewBot(pref)
@@ -29,23 +34,51 @@ func main() {
 		os.Exit(1)
 	}
 
+	b.Use(middleware.Recover())
+	if len(whitelist) > 0 {
+		slog.Info("Adding whitelist", "whitelist", whitelist)
+		b.Use(middleware.Whitelist(whitelist...))
+	}
+
 	b.Handle(tele.OnText, textHandler)
 
 	slog.Info("Bot starting...")
 	b.Start()
 }
 
+// parseWhiteliest parses a comma-separated whitelist to a slice of int64.
+func parseWhiteliest(whitelist string) []int64 {
+	parts := strings.Split(whitelist, ",")
+	result := make([]int64, 0, len(parts))
+
+	for _, part := range parts {
+		part = strings.TrimSpace(part)
+		if part == "" {
+			continue
+		}
+
+		id, err := strconv.ParseInt(part, 10, 64)
+		if err != nil {
+			slog.Warn("Invalid whitelist entry", "entry", part, "error", err)
+			continue
+		}
+
+		result = append(result, id)
+	}
+
+	return result
+}
+
 // textHandler handles incoming text messages.
 func textHandler(c tele.Context) error {
-	logger := slog.With("command", "text")
-	logger.Info("Received a text message", "text", c.Text())
+	logger := slog.With("command", "text", "text", c.Text())
 
 	switch {
 	case strings.HasPrefix(c.Text(), "http"):
-		logger.Info("Detected a link", "text", c.Text())
+		logger.Info("Detected a link")
 		return downloadHandler(c)
 	default:
-		logger.Info("Received a text message", "text", c.Text())
+		logger.Info("Received a text message")
 		return c.Send("Give me a link ;)")
 	}
 }
