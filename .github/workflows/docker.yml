@@ -2,30 +2,21 @@ name: Docker
 
 on:
   push:
-    branches: ["main"]
-    tags: ["v*"]
+    tags:
+      - "*"
 
 jobs:
   build:
     runs-on: ubuntu-latest
+    permissions:
+      packages: write
+      contents: read
     steps:
       - uses: actions/checkout@v4
-      - name: Set up Go
-        uses: actions/setup-go@v5
-        with:
-          go-version: "1.24"
-      - name: Build
-        run: go build -v ./cmd/telecmd
-      - name: Login to Docker Hub
-        uses: docker/login-action@v3
-        with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
-      - name: Build the Docker image
-        run: docker build . --file Dockerfile --tag ${{ secrets.DOCKERHUB_USERNAME }}/telecmd:${GITHUB_TAG}
-      - name: Push the Docker image
-        run: docker push ${{ secrets.DOCKERHUB_USERNAME }}/telecmd:${GITHUB_TAG}
-      - name: Latest Tag
-        run: docker tag ${{ secrets.DOCKERHUB_USERNAME }}/telecmd:${GITHUB_TAG} ${{ secrets.DOCKERHUB_USERNAME }}/telecmd:latest
-      - name: Push Latest Tag
-        run: docker push ${{ secrets.DOCKERHUB_USERNAME }}/telecmd:latest
+      - name: Build and push Docker image
+        env:
+          IMAGE_NAME: telecmd
+        run: |
+          echo "${{ github.token }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+          docker build -t ghcr.io/${{ github.repository }}/${IMAGE_NAME}:${{ github.ref_name }} .
+          docker push ghcr.io/${{ github.repository }}/${IMAGE_NAME}:${{ github.ref_name }}
