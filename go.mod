@@ -1,4 +1,4 @@
-module telecmd
+module github.com/ataraskov/telecmd
 
 go 1.22.6
 

@@ -4,8 +4,8 @@ import (
 	"log/slog"
 	"os"
 
-	"telecmd/internal/bot"
-	"telecmd/internal/util"
+	"github.com/ataraskov/telecmd/internal/bot"
+	"github.com/ataraskov/telecmd/internal/util"
 )
 
 func main() {

@@ -5,7 +5,7 @@ import (
 	"os"
 	"time"
 
-	"telecmd/internal/handler"
+	"github.com/ataraskov/telecmd/internal/handler"
 
 	tele "gopkg.in/telebot.v4"
 	"gopkg.in/telebot.v4/middleware"

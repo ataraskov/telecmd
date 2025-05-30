@@ -4,7 +4,7 @@ import (
 	"log/slog"
 	"strings"
 
-	"telecmd/internal/features/downloader"
+	"github.com/ataraskov/telecmd/internal/features/downloader"
 
 	tele "gopkg.in/telebot.v4"
 )
