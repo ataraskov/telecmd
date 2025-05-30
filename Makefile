@@ -1,6 +1,5 @@
 # Variables
 BINARY_NAME=telecmd
-GO_FILES=$(shell find . -name "*.go" -type f)
 
 # Default target
 .PHONY: all
@@ -9,7 +8,7 @@ all: build
 # Build the application
 .PHONY: build
 build:
-	go build -o $(BINARY_NAME) .
+	go build -o $(BINARY_NAME) cmd/telecmd/main.go
 
 # Run the application
 .PHONY: run
