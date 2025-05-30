@@ -9,7 +9,7 @@ import (
 )
 
 func main() {
-	slog.Info("Starting")
+	slog.Info("Starting", "version", util.Version())
 
 	token := os.Getenv("TOKEN")
 	whitelist := os.Getenv("WHITELIST")
