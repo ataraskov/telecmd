@@ -4,7 +4,7 @@ import (
 	"log/slog"
 	"strings"
 
-	"telecmd/internal/util"
+	"telecmd/internal/features/downloader"
 
 	tele "gopkg.in/telebot.v4"
 )
@@ -33,12 +33,13 @@ func DownloadHandler(c tele.Context) error {
 	}
 
 	c.Send("Downloading...")
-	filename, _, err := util.DownloadVideo(url)
+	d := downloader.New()
+	filename, _, err := d.DownloadVideo(url)
 	if err != nil || filename == "" {
 		logger.Error("Error downloading video", "url", url, "filename", filename, "error", err)
 		return c.Send("Error downloading video: " + err.Error())
 	}
-	defer util.RemoveFile(filename)
+	defer d.RemoveFile(filename)
 
 	logger.Info("Downloaded file", "filename", filename, "url", url)
 	video := &tele.Video{File: tele.FromDisk(filename)}
