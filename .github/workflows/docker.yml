@@ -1,0 +1,31 @@
+name: Docker
+
+on:
+  push:
+    branches: ["main"]
+    tags: ["v*"]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: "latest"
+      - name: Build
+        run: go build -v ./cmd/telecmd
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+      - name: Build the Docker image
+        run: docker build . --file Dockerfile --tag ${{ secrets.DOCKERHUB_USERNAME }}/telecmd:${GITHUB_TAG}
+      - name: Push the Docker image
+        run: docker push ${{ secrets.DOCKERHUB_USERNAME }}/telecmd:${GITHUB_TAG}
+      - name: Latest Tag
+        run: docker tag ${{ secrets.DOCKERHUB_USERNAME }}/telecmd:${GITHUB_TAG} ${{ secrets.DOCKERHUB_USERNAME }}/telecmd:latest
+      - name: Push Latest Tag
+        run: docker push ${{ secrets.DOCKERHUB_USERNAME }}/telecmd:latest
