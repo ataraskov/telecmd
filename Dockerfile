@@ -15,9 +15,15 @@ FROM python:3.13-alpine
 RUN wget -O /usr/local/bin/yt-dlp https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp && \
     chmod +x /usr/local/bin/yt-dlp
 
+# Copy scripts
+COPY scripts/update-yt-dlp.sh /usr/local/bin/update-yt-dlp.sh
+COPY scripts/start.sh         /usr/local/bin/start.sh
+RUN chmod +x /usr/local/bin/update-yt-dlp.sh /usr/local/bin/start.sh
+RUN echo "@daily /usr/local/bin/update-yt-dlp.sh" > /etc/crontabs/root
+
 # Copy the binary from builder stage
 COPY --from=builder /app/telecmd /usr/local/bin/telecmd
 
 WORKDIR /app
 
-CMD ["telecmd"]
+CMD ["/usr/local/bin/start.sh"]
